@@ -79,6 +79,12 @@ def move_platforms():
     # TODO : Parcourez les plateformes et gérez le déplacement des plateformes
     # bleues encore actives. Elles doivent rester dans la fenêtre en inversant
     # leur vitesse lorsqu'elles atteignent un bord.
+    for platform in PLATFORMS:
+        if platform["type"] == "blue" and platform["active"]:
+            platform["x"] += platform["vx"]
+            if platform["x"] <= 0 or platform["x"] + PLATFORM_WIDTH >= SCREEN_WIDTH:
+                platform["vx"] *= -1
+
 
     return
 
