@@ -19,6 +19,9 @@ def apply_gravity():
     Applique la gravité au Doodle en augmentant progressivement sa vitesse verticale (vel_y).
     Met à jour la position verticale (y) du Doodle.
     """
+    doodle_dict["vel_y"] += GRAVITY
+    doodle_dict["y"] += doodle_dict["vel_y"]
+
     # TODO : Mettez à jour la vitesse verticale puis la position verticale
     # du Doodle à partir de GRAVITY.
 
@@ -89,19 +92,34 @@ def check_platform_collisions():
     Le rebond ne se produit QUE lorsque le Doodle descend (vel_y > 0)
     et qu'il arrive sur le dessus d'une plateforme.
     """
-    # TODO : Implémentez la détection d'un atterrissage.
-    #
-    # Contraintes :
-    # - aucun rebond pendant la montée ;
-    # - ignorer les plateformes inactives ;
-    # - utiliser rects_collide(...) pour le chevauchement des rectangles ;
-    # - un simple chevauchement ne suffit pas : le Doodle doit arriver par
-    #   le dessus de la plateforme. Pour le vérifier, comparez la position
-    #   actuelle de ses pieds à leur position approximative à l'image
-    #   précédente à l'aide de vel_y. Une tolérance de 14 pixels est permise ;
-    # - spring : SPRING_JUMP_VELOCITY ;
-    # - brown : JUMP_VELOCITY puis désactivation de la plateforme ;
-    # - green/blue : JUMP_VELOCITY.
+    if doodle_dict["vel_y"] <= 0:
+        return
+
+    doodle_rect = (
+        doodle_dict["x"], doodle_dict["y"], DOODLE_WIDTH, DOODLE_HEIGHT
+    )
+    doodle_feet = doodle_dict["y"] + DOODLE_HEIGHT
+    previous_feet = doodle_feet - doodle_dict["vel_y"]
+
+    for platform in PLATFORMS:
+        if not platform["active"]:
+            continue
+
+        platform_rect = (
+            platform["x"], platform["y"],
+            platform["width"], platform["height"]
+        )
+        if not rects_collide(doodle_rect, platform_rect):
+            continue
+
+        if previous_feet <= platform["y"] + 14 and doodle_feet >= platform["y"]:
+            if platform["type"] == "spring":
+                doodle_dict["vel_y"] = SPRING_JUMP_VELOCITY
+            else:
+                doodle_dict["vel_y"] = JUMP_VELOCITY
+                if platform["type"] == "brown":
+                    platform["active"] = False
+            return
 
     return
 
