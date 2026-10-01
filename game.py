@@ -135,6 +135,26 @@ def scroll_camera():
     # TODO : Lorsque le Doodle dépasse le seuil de caméra, il doit rester
     # visuellement au seuil pendant que les plateformes sont déplacées vers
     # le bas de la même distance.
+
+    if doodle_dict["y"] < CAMERA_SCROLL_THRESHOLD:
+        scroll_amount = CAMERA_SCROLL_THRESHOLD - doodle_dict["y"]
+        doodle_dict["y"] = CAMERA_SCROLL_THRESHOLD
+
+        for platform in PLATFORMS:
+            platform["y"] += scroll_amount
+
+        doodle_dict["score"] += scroll_amount
+        if doodle_dict["score"] > doodle_dict.get("best_score", 0):
+            doodle_dict["best_score"] = doodle_dict["score"]
+
+        # Retirer les plateformes qui sont sorties de l'écran
+        for platform in PLATFORMS:
+            if platform["y"] > SCREEN_HEIGHT:
+                platform["active"] = False
+
+        # Générer de nouvelles plateformes si nécessaire
+        generate_new_platforms()
+
     #
     # Le score doit représenter la distance verticale ainsi parcourue et le
     # meilleur score doit être mis à jour. Les plateformes sorties sous
@@ -151,12 +171,21 @@ def generate_new_platforms():
     Génère de nouvelles plateformes au-dessus du haut de l'écran pour maintenir
     un flux continu lorsque la caméra défile.
     """
-    # TODO : Complétez cette fonction en vous inspirant de la logique de
-    # génération initiale, sans la recopier inutilement.
-    #
-    # Vous devrez partir de la plateforme actuellement la plus haute et
-    # continuer à ajouter des plateformes tant que nécessaire. Utilisez
-    # choose_platform_type(...) avec les probabilités indiquées dans le README.
+    active_platforms = [platform for platform in PLATFORMS if platform["active"]]
+    current_y = min(
+        (platform["y"] for platform in active_platforms),
+        default=SCREEN_HEIGHT
+    )
+
+    while current_y > 0:
+        current_y -= random.randint(MIN_PLATFORM_GAP, MAX_PLATFORM_GAP)
+        platform_type = choose_platform_type(0.55, 0.20, 0.13)
+        platform = create_platform(
+            random.randint(0, SCREEN_WIDTH - PLATFORM_WIDTH),
+            current_y,
+            platform_type
+        )
+        PLATFORMS.append(platform)
 
     return
 
